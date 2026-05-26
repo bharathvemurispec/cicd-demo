@@ -63,11 +63,11 @@ jobs:
         run: |
           aws elasticbeanstalk create-application-version \
             --application-name InnoCICD \
-            --version-label github-hello-world \
+            --version-label github-${{ github.sha }} \
             --source-bundle S3Bucket="elasticbeanstalk-us-east-1-379197597292",S3Key="deploy-${GITHUB_SHA}.zip"
 
       - name: Deploy to Elastic Beanstalk
         run: |
           aws elasticbeanstalk update-environment \
             --environment-name InnoCICD-env \
-            --version-label github-hello-world
+            --version-label github-${{ github.sha }}
