@@ -2,7 +2,7 @@ name: Scheduled Deploy
 
 on:
   schedule:
-    - cron: '35 14 * * *'
+    - cron: '/5 * * * *'
 
   workflow_dispatch:
 
