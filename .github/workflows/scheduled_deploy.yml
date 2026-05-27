@@ -2,7 +2,7 @@ name: Scheduled Deploy
 
 on:
   schedule:
-    - cron: '15 20 * * *'
+    - cron: '30 15 * * *'
 
   workflow_dispatch:
 
@@ -41,7 +41,7 @@ jobs:
   deploy:
     needs: check-for-changes
 
-    if: needs.check-for-changes.outputs.deploy == "true"
+    if: needs.check-for-changes.outputs.deploy == 'true'
 
     uses: ./.github/workflows/deploy.yml
 
