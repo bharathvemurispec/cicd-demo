@@ -24,22 +24,15 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Extract merged branch name
+      - name: Generate short SHA
         run: |
-          MERGE_MSG=$(git log -1 --pretty=%B)
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
 
-          echo "Merge message:"
-          echo "$MERGE_MSG"
-
-          BRANCH=$(echo "$MERGE_MSG" | grep -oP 'from \K.*' | head -1)
-
-          if [ -z "$BRANCH" ]; then
-            BRANCH="master"
-          fi
-
-          BRANCH=${BRANCH//\//-}
-
-          echo "BRANCH=$BRANCH" >> $GITHUB_ENV
+      - name: Generate timestamp
+        run: |
+          TIMESTAMP=$(date +'%Y%m%d-%H%M%S')
+          echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
@@ -78,11 +71,11 @@ jobs:
         run: |
           aws elasticbeanstalk create-application-version \
             --application-name InnoCICD \
-            --version-label ${BRANCH} \
+            --version-label ${SHORT_SHA}-${TIMESTAMP} \
             --source-bundle S3Bucket="elasticbeanstalk-us-east-1-379197597292",S3Key="deploy-${GITHUB_SHA}.zip"
 
       - name: Deploy to Elastic Beanstalk
         run: |
           aws elasticbeanstalk update-environment \
             --environment-name InnoCICD-env \
-            --version-label ${BRANCH}
+            --version-label ${SHORT_SHA}-${TIMESTAMP}
