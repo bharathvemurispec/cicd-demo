@@ -1,0 +1,50 @@
+name: Scheduled Deploy
+
+on:
+  schedule:
+    - cron: '15 15 * * *'
+
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  check-for-changes:
+    runs-on: ubuntu-latest
+
+    outputs:
+      deploy: ${{ steps.changes.outputs.deploy }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for recent commits
+        id: changes
+        run: |
+          COUNT=$(git rev-list --count --since="24 hours ago" HEAD)
+          
+          echo "Recent commits: $COUNT"
+          
+          if [ "$COUNT" -gt 0 ]; then
+            echo "deploy=true" >> $GITHUB_OUTPUT
+          else
+            echo "deploy=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Skip Deploy
+        if: steps.changes.outputs.deploy == 'false'
+        run: echo "No recent changes detected."
+
+  deploy:
+    needs: check-for-changes
+
+    if: needs.check-for-changes.outputs.deploy == "true"
+
+    uses: ./.github/workflows/deploy.yml
+
+    permissions:
+      id-token: write
+      contents: read
